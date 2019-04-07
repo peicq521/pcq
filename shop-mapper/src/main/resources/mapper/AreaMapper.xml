@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC
+    "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+    <mapper namespace="com.fh.shop.backend.mapper.Area.IAreaMapper">
+
+
+    	<!-- 添加 -->
+    <insert id = "addArea" parameterType = "com.fh.shop.backend.po.area.Area">
+        <selectKey keyProperty="id" order="AFTER" resultType="int">
+            select last_insert_id()
+        </selectKey>
+    	insert into t_area (pId,name) values
+
+    	(#{pId},#{name})
+
+    </insert>
+
+
+
+	<select id="findAreaList" parameterType="area" resultType="area">
+		select id,name,pId,typeId from t_city where pId = #{id}
+	</select>
+
+
+
+
+
+
+
+    </mapper>

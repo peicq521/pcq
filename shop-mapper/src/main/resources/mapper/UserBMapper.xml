@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC  
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+    
+    <mapper namespace="com.fh.shop.backend.mapper.user.IUserMapper">
+      <resultMap id="userMap" type="user">
+		<result column="id" property="id"/>
+		<result column="userName" property="userName"/>
+		<result column="userPwd" property="passWord"/>
+		<result column="salt" property="salt"/>
+		<result column="coount" property="coount"/>
+		<result column="correntDate" property="correntDate"/>
+		<result column="status" property="status"/>
+		<result column="errorCount" property="errorCount"/>
+		<result column="salary" property="salary"/>
+		<result column="userRealName" property="userRealName"/>
+		<result column="deptId" property="deptInfo.id"/>
+        <result column="name" property="deptInfo.name"/>
+	</resultMap>
+      
+        <select id="checkCunt" resultMap="userMap" parameterType="user">
+           select
+           id,userName,
+           userPwd,salt,
+           coount,correntDate,
+           status,errorCount,
+           birthday,sex,
+           salary,userRealName,headerPath,
+           deptId from t_user where userName=#{userName}
+        </select>
+
+        <insert id="addUser" >
+            insert into t_user (userName,userPwd,salt) values (#{userName},#{passWord},#{salt})
+        </insert>
+
+        <insert id="addUserInfo" parameterType="user">
+            insert into t_user (userName,userPwd,salary,birthday,userRealName,deptId,sex,headerPath)
+            values (#{userName},#{passWord},#{salary},#{birthday},#{userRealName},#{deptId},#{sex},#{headerPath})
+        </insert>
+
+    <update id="updateUserDept" parameterType="user" >
+        update t_user set userName=#{userName},headerPath=#{headerPath}
+        deptId=#{deptId},salary=#{salary},userRealName=#{userRealName},sex=#{sex},birthday=#{birthday}
+        where id=#{id}
+    </update>
+
+    <update id="updateUser" parameterType="user" >
+        update t_user set coount=#{coount},correntDate=#{correntDate},status=#{status},errorCount=#{errorCount}
+        where id=#{id}
+    </update>
+
+    <select id="findUserById" parameterType="int" resultMap="userMap">
+           select u.id,userName,userPwd,birthday,salary,userRealName,sex,deptId,d.name,headerPath
+           from t_user u left join t_dept d on d.id=u.deptId where u.id=#{id}
+    </select>
+
+    <delete id="deleteUser" parameterType="int">
+         delete from t_user where id=#{value}
+    </delete>
+
+    <delete id="deleteUserInfo" >
+         delete from t_user where id in
+         <foreach collection="list" separator="," open="(" close=")" item="id">
+             #{id}
+         </foreach>
+    </delete>
+
+    <update id="updateDept">
+        update t_user set deptId=#{deptIds} where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+    <!-- 查询总条数 -->
+    <select id="queryCount" resultType="Long" parameterType="user">
+
+        select count(*) from t_user u left join t_dept d on d.id = u.deptId
+
+       <include refid="userWhere"></include>
+
+    </select>
+
+    <select id="findUser" resultMap="userMap" parameterType="user">
+
+            select u.id, userName,
+
+            userRealName, sex, birthday, salary, d.name,deptId,headerPath from  t_user u
+
+            left join  t_dept d on u.deptId = d.id
+
+          <include refid="userWhere"></include>
+
+           <if test="sortField !=null and sortField !=''">
+            order by ${sortField} ${sort}
+          </if>
+          <if test="sortField ==null and sortField ==''">
+            order by u.id asc
+          </if>
+            limit #{startPos},#{pageSize}
+
+    </select>
+
+
+    <sql id="userWhere">
+        <where>
+            <if test="id== null">
+                1 = 1
+            </if>
+            <if test="userName != null and userName != ''">
+                 and userName like concat('%',#{userName},'%')
+            </if>
+            <if test="minSalary != null and minSalary >= 0">
+                and salary >= #{minSalary}
+            </if>
+            <if test="maxSalary != null and maxSalary >= 0">
+                and salary &lt;= #{maxSalary}
+            </if>
+            <if test="minBirthday != null ">
+                and birthday >=  #{minBirthday}
+            </if>
+            <if test="maxBirthday != null ">
+                and birthday &lt;=  #{maxBirthday}
+            </if>
+           <!-- <if test="deptInfo.id != null and deptInfo.id != -1">
+                and deptId = #{deptInfo.id}
+            </if>-->
+          <if test="deptIdsList!=null and deptIdsList.size()>0">
+                  and  deptId in
+            <foreach collection="deptIdsList" item="id" open="(" close=")" separator=",">
+                    #{id}
+                </foreach>
+            </if>
+
+        </where>
+    </sql>
+
+    </mapper>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC
+    "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+    <mapper namespace="com.fh.shop.backend.mapper.member.IMemberMapper">
+
+    <select id="findMemberList" resultType="member" parameterType="member">
+        select id,userName,phone,birthday,email,site,areaIds from t_member
+        <include refid="memberWhere"></include>
+    </select>
+
+    <select id="queryCount" resultType="Long" parameterType="member">
+        select count(*) from t_member
+        <include refid="memberWhere"></include>
+    </select>
+
+    <select id="toUpdateMember" parameterType="int" resultType="member">
+        select id,userName,phone,birthday,email,site,areaIds from t_member where id=#{value}
+    </select>
+
+  <update id="updateMember" parameterType="member">
+        update t_member set userName=#{userName},phone=#{phone},birthday=#{birthday},email=#{email},
+        site=#{site},areaIds=#{areaIds}  where id=#{id}
+    </update>
+
+    <sql id="memberWhere">
+        <where>
+            <if test="id== null">
+                1 = 1
+            </if>
+            <if test="userName != null and userName != ''">
+                userName like concat('%',#{userName},'%')
+            </if>
+
+            <if test="minBirthday != null">
+                and binthday >= #{minBirthday}
+            </if>
+            <if test="maxBirthday != null">
+                and binthday &lt;= #{maxBirthday}
+            </if>
+            <if test="areaIds !=null and areaIds != ''">
+                and areaIds like concat(#{areaIds},'%')
+            </if>
+
+        </where>
+    </sql>
+
+    </mapper>

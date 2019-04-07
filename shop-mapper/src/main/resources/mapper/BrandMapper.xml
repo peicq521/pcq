@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC  
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+    
+    <mapper namespace="com.fh.shop.backend.mapper.brand.IBrandMapper">
+    
+    <resultMap id="brandMap" type="brand">
+    
+    	<result column="id" property="id"/>
+    	
+    	<result column="brandName" property="brandName"/>
+    	
+    	<result column="entryTime" property="entryTime"/>
+    	
+    	<result column="updateTime" property="updateTime"/>
+    
+    </resultMap>
+    	<!-- 添加 -->
+    <insert id = "addBrand" parameterType = "brand">
+    
+    	insert into t_brand (brandName,entryTime,updateTime) values 
+    	
+    	(#{brandName},#{entryTime},#{updateTime})
+    
+    </insert>
+    
+    	<!-- 总条数 -->
+    <select id = "queryCount" parameterType = "brand" resultType = "Long">
+    
+    	select count(*) from t_brand <include refid="brandWhere"></include>
+    
+    </select>
+    
+    	<!-- 当前页信息 -->
+    <select id = "queryBrandPage" parameterType = "brand" resultMap = "brandMap">
+		select t.* from
+
+		(select id,brandName,entryTime,updateTime from t_brand <include refid="brandWhere"></include> order by id desc) t
+		<if test="sortField!=null and sortField!=''">
+			order by ${sortField} ${sort}
+		</if>
+		<if test="sortField==null and sortField==''">
+			order by id desc
+		</if>
+		limit #{startPos},#{pageSize}
+    
+    </select>
+    
+    	<!-- 回显 -->
+    <select id = "findBrand" parameterType = "int" resultMap = "brandMap">
+    
+    	select id,brandName from t_brand where id = #{value}
+    
+    </select>
+    
+    	<!-- 修改 -->
+    <update id = "updateBrand" parameterType = "brand" >
+    
+    	update t_brand set brandName  = #{brandName} ,
+    	
+    	updateTime = #{updateTime} where id = #{id}
+    
+    </update>
+    
+    	<!-- 单挑删除 -->
+    <delete id = "deleteBrand" parameterType = "int">
+    
+    	delete from t_brand where id = #{value}
+    
+    </delete>
+    
+  	<!--批量删除 -->
+  	<delete id = "deleteBechBrand" parameterType = "list">
+  	
+  		delete from t_brand where id in 
+  		
+  		<foreach collection="list" item="id" open="(" close=")" separator=",">#{id}</foreach>
+  	
+  	</delete>
+  	
+  	<!-- 查询全部 -->
+  	<select id="queryBrand" resultMap="brandMap">
+  	
+  		select id,brandName from t_brand 
+  	
+  	</select>
+    
+    <sql id="brandWhere">
+    	<where>
+    		<if test="minEntryTime != null">
+    			entryTime >= #{minEntryTime}
+    		</if>
+    		<if test="maxEntryTime != null">
+    			and entryTime &lt;= #{maxEntryTime}
+    		</if>
+    		<if test="minUpdateTime != null">
+    			and updateTime >= #{minUpdateTime}
+    		</if>
+    		<if test="maxUpdateTime != null">
+    			and updateTime &lt;= #{maxUpdateTime}
+    		</if>
+    	</where>
+    </sql>
+    
+    
+    </mapper>

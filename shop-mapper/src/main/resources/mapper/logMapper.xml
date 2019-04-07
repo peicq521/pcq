@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC
+        "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+    <mapper namespace="com.fh.shop.backend.mapper.log.ILogMapper">
+
+        <resultMap id="logMap" type="logInfo">
+
+            <result column="id" property="id"/>
+
+            <result column="userName" property="userName"/>
+
+            <result column="info" property="info"/>
+
+            <result column="status" property="status"/>
+
+            <result column="createTime" property="createTime"/>
+
+            <result column="useTime" property="useTime"/>
+
+        </resultMap>
+
+        <insert id="addLog" parameterType="logInfo">
+
+            insert into  t_log  (id,userName,info,status,createTime,useTime)
+
+            values (#{id},#{userName},#{info},#{status},#{createTime},#{useTime})
+
+        </insert>
+
+        <select id="totalCount" parameterType="logInfo"  resultType="Long">
+
+            select count(*) from t_log
+
+            <include refid="logWhere"></include>
+
+        </select>
+
+        <select id="selectLogPage" parameterType="logInfo" resultMap="logMap">
+
+            select id,userName,info,status,createTime,useTime from t_log
+
+            <include refid="logWhere"></include> order by id desc
+
+            limit #{startPos},#{pageSize}
+
+        </select>
+
+    <sql id="logWhere">
+        <where>
+
+            <if test="userName != null and userName != ''">
+                userName like concat('%',#{userName},'%')
+            </if>
+
+            <if test="status != null and status != -1">
+                and status = #{status}
+            </if>
+
+            <if test="minCreateTime != null">
+                and createTime >= #{minCreateTime}
+            </if>
+
+            <if test="maxCreateTime != null">
+                and createTime &lt;= #{maxCreateTime}
+            </if>
+
+            <if test="minUserTime != null">
+                and useTime >= #{minUserTime}
+            </if>
+
+            <if test="maxUserTime != null">
+                and useTime &lt;= #{maxUserTime}
+            </if>
+
+        </where>
+    </sql>
+
+
+</mapper>

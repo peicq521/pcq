@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC
+    "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.fh.shop.backend.mapper.product.IProductMapper">
+
+	<!-- 将表里面的字段和对应的javabean中的属性进行映射 -->
+	<!-- type指明javabean -->
+	<resultMap id="productMap" type="product">
+		<result column="id" property="id"/>
+
+		<result column="productName" property="productName"/>
+
+		<result column="price" property="productPrice"/>
+
+		<result column="entryTime" property="entryTime"/>
+
+		<result column="updateTime" property="updateTime"/>
+
+		<result column="productImagePath" property="productImagePath"/>
+
+		<result column="brandName"  property="brand.brandName"/>
+
+		<result column="brandId"  property="brand.id"/>
+	</resultMap>
+
+	<delete id="deleteImage">
+		delete from t_image where imagePath in
+		<foreach collection="list" item="imagePath" open="(" close=")" separator=",">
+			#{imagePath}
+		</foreach>
+	</delete>
+
+	<!--添加  -->
+	<insert id="addProduct" parameterType="product"  >
+		<selectKey keyProperty="id" order="AFTER" resultType="int">
+			select last_insert_id()
+		</selectKey>
+		insert into t_product(productName,price,entryTime,updateTime,brandId,productImagePath) values
+		(#{productName},#{productPrice},#{entryTime},#{updateTime},#{brand.id},#{productImagePath})
+	</insert>
+
+	<!--添加  -->
+	<insert id="addBatchImage" parameterType="ImageInfo"  >
+		<selectKey keyProperty="id" order="AFTER" resultType="int">
+			select last_insert_id()
+		</selectKey>
+		insert into t_product(productName,price,entryTime,updateTime,brandId,productImagePath) values
+		(#{productName},#{productPrice},#{entryTime},#{updateTime},#{brand.id},#{productImagePath})
+	</insert>
+
+	<select id="findProductList" resultMap="productMap">
+		select id,productName,price,productImagePath from t_product
+	</select>
+
+	<!--将上传的多个图片的相对路径添加数据库图片表中-->
+	<insert id="addProductChildImage" parameterType="imageInfo">
+		insert into t_image (imagePath,productId) values
+		<foreach collection="list" item="img" separator="," >
+		(#{img.imagePath},#{img.productId})
+	    </foreach>
+	</insert>
+	<!-- 查询 -->
+	<select id="selectList" resultMap="productMap">
+
+		select id,productName,price,entryTime,updateTime,productImagePath from t_product order by id desc
+
+	</select>
+
+	<select id="childImage" parameterType="product" resultType="imageInfo">
+
+      select * from t_image where productId=#{id}
+
+	</select>
+	<!-- 删除 -->
+	<delete id="deleteProduct" parameterType="int">
+
+		delete from t_product where id = #{value}
+
+	</delete>
+
+	<!-- 回显 -->
+	<select id="selectProduct" parameterType="int" resultMap="productMap">
+
+		select id,productName,price,productImagePath,brandId from t_product where id = #{value}
+
+	</select>
+
+	<!-- 修改 -->
+	<update id="updateProduct" parameterType="product">
+
+		update t_product set productName = #{productName} , price = #{productPrice} ,
+
+	    updateTime = #{updateTime} ,productImagePath=#{productImagePath}, brandId = #{brand.id} where id = #{id}
+
+	</update>
+	<!-- 批量删除 -->
+	<delete id="deleteBatchProduct">
+
+		delete from t_product where id in
+
+		<foreach collection="list" item="product" open="(" close=")" separator=",">#{product}</foreach>
+
+	</delete>
+
+	<!-- 查询总条数 -->
+	<select id="queryCount" resultType="Long" parameterType="product">
+
+		select count(*),p.id from t_product p left join t_brand b on p.brandid = b.id
+
+		<include refid="productWhere"></include>
+
+	</select>
+
+	<!-- 查询页面信息 -->
+	<select id="queryProductPage" resultMap="productMap" parameterType="product">
+
+
+		select p.id,p.productName,price,p.entryTime,p.updateTime,b.brandName,productImagePath
+
+		from t_product p left join t_brand b on p.brandid = b.id
+
+		<include refid="productWhere"></include>
+
+		<if test="sortField !=null and sortField !=''">
+		   order by ${sortField} ${sort}
+	    </if>
+		<if test="sort ==null and sort ==''">
+		   order by p.id asc
+		</if>
+
+	</select>
+	<select id="productExcel" parameterType="product" resultMap="productMap">
+	select p.id,productName,price,p.entryTime,p.updateTime from t_product p  left join t_brand b on p.brandId = b.id
+	<include refid="productWhere"/>
+
+</select>
+	<sql id="productWhere">
+		<where>
+			<if test="id== null">
+				1 = 1
+			</if>
+			<if test="productName != null and productName != ''">
+				and productName like concat('%',#{productName},'%')
+			</if>
+			<if test="minPrice != null and minPrice >= 0">
+				and price >= #{minPrice}
+			</if>
+			<if test="maxPrice != null and maxPrice >= 0">
+				and price &lt;= #{maxPrice}
+			</if>
+			<if test="minEntryTime != null">
+				and entryTime >= #{minEntryTime}
+			</if>
+			<if test="maxEntryTime != null">
+				and entryTime &lt;= #{maxEntryTime}
+			</if>
+			<if test="minUpdateTime != null">
+				and updateTime >= #{minUpdateTime}
+			</if>
+			<if test="maxUpdateTime != null">
+				and updateTime &lt;= #{maxUpdateTime}
+			</if>
+			<if test="brand.id != null and brand.id != -1">
+				and brandId = #{brand.id}
+			</if>
+
+		</where>
+	</sql>
+
+</mapper>
